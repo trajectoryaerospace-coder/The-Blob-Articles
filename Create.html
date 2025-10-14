@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Blob Articles - Write an Article</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #bbdce7; /* Light blue background */
+        }
+        .hero-bg {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://source.unsplash.com/random/1920x1080/?cosmos');
+            background-size: cover;
+            background-position: center;
+        }
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        header {
+            background: rgba(20, 131, 205, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            height: 60px;
+            justify-content: center;
+        }
+        .content-editable {
+            min-height: 300px;
+            border: 1px solid #d1d5db;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #ffffff;
+            outline: none;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .content-editable:focus {
+            border-color: #2b579a;
+            box-shadow: 0 0 0 3px rgba(43, 87, 154, 0.2);
+        }
+        .content-editable.error {
+            border-color: #dc2626;
+            background-color: #fef2f2;
+        }
+        .input-error {
+            border-color: #dc2626 !important;
+            background-color: #fef2f2 !important;
+        }
+        .submit-button:disabled {
+            background-color: #d1d5db;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        .counter {
+            font-family: 'Calibri', sans-serif;
+            font-size: 14px;
+            color: #4b5563;
+            margin-top: 8px;
+        }
+        .error-messages {
+            font-family: 'Calibri', sans-serif;
+            font-size: 14px;
+            color: #dc2626;
+            margin-top: 8px;
+            min-height: 20px;
+        }
+        /* Formatting toolbar styles */
+        #toolbar {
+            margin-bottom: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        #toolbar button {
+            background-color: #f3f4f6;
+            border: 1px solid #d1d5db;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        #toolbar button:hover {
+            background-color: #e5e7eb;
+        }
+        #toolbar button.active {
+            background-color: #bfdbfe; /* Light blue for active state */
+        }
+        #toolbar select {
+            background-color: #f3f4f6;
+            border: 1px solid #d1d5db;
+            padding: 4px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+    <!-- Header -->
+    <header class="shadow sticky top-0 z-50 relative">
+        <nav class="container mx-auto px-2 py-4 flex flex-col items-center relative">
+            <ul class="flex space-x-6">
+                <li><a href="index.html" class="text-gray-800 font-bold hover:text-indigo-400">Home</a></li>
+                <li><a href="#" class="text-gray-800 font-bold hover:text-indigo-400">Articles</a></li>
+                <li><a href="#" class="text-gray-800 font-bold hover:text-indigo-400">About</a></li>
+                <li><a href="#" class="text-gray-800 font-bold hover:text-indigo-400">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-bg h-96 flex items-center justify-center text-white">
+        <div class="text-center">
+            <h2 class="text-4xl md:text-5xl font-bold mb-4 fade-in">Write a New Article</h2>
+            <p class="text-lg md:text-xl fade-in">Share Your Cosmic Thoughts with the World</p>
+        </div>
+    </section>
+
+    <!-- Article Form -->
+    <main class="mx-0.5 py-12">
+        <section class="bg-white rounded-lg shadow-lg p-4 md:p-8 fade-in">
+            <h2 class="text-3xl font-bold mb-6">Create Your Article</h2>
+            <form id="article-form">
+                <div class="mb-6">
+                    <label for="name" class="block text-lg font-semibold mb-2">Your Name</label>
+                    <input type="text" id="name" name="name" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-600" placeholder="Enter your name" required>
+                </div>
+                <div class="mb-6">
+                    <label for="subject" class="block text-lg font-semibold mb-2">Subject</label>
+                    <input type="text" id="subject" name="subject" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-600" placeholder="Enter the article subject" required>
+                </div>
+                <div class="mb-6">
+                    <label for="body" class="block text-lg font-semibold mb-2">Article Body</label>
+                    <div id="toolbar">
+                        <button type="button" data-command="bold" title="Bold"><strong>B</strong></button>
+                        <button type="button" data-command="italic" title="Italic"><em>I</em></button>
+                        <button type="button" data-command="underline" title="Underline"><u>U</u></button>
+                        <button type="button" data-command="justifyLeft" title="Align Left">Left</button>
+                        <button type="button" data-command="justifyCenter" title="Align Center">Center</button>
+                        <button type="button" data-command="justifyRight" title="Align Right">Right</button>
+                        <button type="button" data-command="justifyFull" title="Justify">Justify</button>
+                        <select data-command="fontSize" title="Font Size">
+                            <option value="">Size</option>
+                            <option value="12px">12px</option>
+                            <option value="14px">14px</option>
+                            <option value="18px">18px</option>
+                            <option value="24px">24px</option>
+                            <option value="32px">32px</option>
+                        </select>
+                        <select data-command="formatBlock" title="Heading/Paragraph">
+                            <option value="">Style</option>
+                            <option value="p">Paragraph</option>
+                            <option value="h1">Heading 1</option>
+                            <option value="h2">Heading 2</option>
+                            <option value="h3">Heading 3</option>
+                        </select>
+                    </div>
+                    <div id="body" contenteditable="true" class="content-editable"></div>
+                    <div class="counter" id="word-character-counter">Words: 0 | Characters: 0</div>
+                </div>
+                <button type="submit" id="submit-button" class="bg-indigo-600 text-white font-bold px-6 py-3 rounded-lg hover:bg-indigo-700 transition duration-300 submit-button" disabled>Submit Article</button>
+                <div class="error-messages" id="error-messages"></div>
+            </form>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-2 text-center">
+            <p class="mb-4">© 2025 The Blob Articles</p>
+            <div class="flex justify-center space-x-4">
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript for Fade-In Animation, Swear Word Detection, Counter, and Submission -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Fade-in animation
+            const elements = document.querySelectorAll('.fade-in');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+            elements.forEach(element => observer.observe(element));
+
+            // Form elements
+            const form = document.getElementById('article-form');
+            const editor = document.getElementById('body');
+            const nameInput = document.getElementById('name');
+            const subjectInput = document.getElementById('subject');
+            const submitButton = document.getElementById('submit-button');
+            const counterDisplay = document.getElementById('word-character-counter');
+            const errorMessages = document.getElementById('error-messages');
+            const swearWords = ['damn', 'hell', 'shit', 'fuck', 'bitch', 'pedo', 'pedophile','cum', 'nigga','5HIT', 'F1CK','F2CK','F3CK','F4CK','F5CK','F6CK', 'N1gga',]; // Basic list, expand as needed
+            let characterCount = 0;
+            let wordCount = 0;
+
+            // Get all toolbar buttons for toggle commands
+            const toggleButtons = {
+                bold: document.querySelector('[data-command="bold"]'),
+                italic: document.querySelector('[data-command="italic"]'),
+                underline: document.querySelector('[data-command="underline"]'),
+                justifyLeft: document.querySelector('[data-command="justifyLeft"]'),
+                justifyCenter: document.querySelector('[data-command="justifyCenter"]'),
+                justifyRight: document.querySelector('[data-command="justifyRight"]'),
+                justifyFull: document.querySelector('[data-command="justifyFull"]')
+            };
+
+            // Function to update button active states
+            function updateButtonStates() {
+                Object.keys(toggleButtons).forEach(command => {
+                    if (toggleButtons[command]) {
+                        toggleButtons[command].classList.toggle('active', document.queryCommandState(command));
+                    }
+                });
+            }
+
+            // Toolbar functionality
+            const toolbar = document.getElementById('toolbar');
+            toolbar.addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                    const button = e.target.closest('button');
+                    const command = button.getAttribute('data-command');
+                    document.execCommand(command, false, null);
+                    updateButtonStates();
+                    editor.focus();
+                    updateFormState();
+                }
+            });
+            toolbar.addEventListener('change', (e) => {
+                if (e.target.tagName === 'SELECT') {
+                    const command = e.target.getAttribute('data-command');
+                    let value = e.target.value;
+                    if (command === 'fontSize' && value) {
+                        // Map px values to HTML font size units (1-7) for reliable application
+                        let sizeUnit;
+                        switch (value) {
+                            case '12px': sizeUnit = '2'; break;  // Small
+                            case '14px': sizeUnit = '3'; break;  // Normal
+                            case '18px': sizeUnit = '4'; break;  // Medium-large
+                            case '24px': sizeUnit = '5'; break;  // Large
+                            case '32px': sizeUnit = '6'; break;  // Extra large
+                            default: sizeUnit = '3';
+                        }
+                        // Use classic fontSize with unit 1-7 (creates <font size="X"> which overrides consistently)
+                        document.execCommand('fontSize', false, sizeUnit);
+                    } else if (command === 'formatBlock') {
+                        document.execCommand(command, false, value);
+                    }
+                    e.target.value = ''; // Reset select
+                    editor.focus();
+                    updateFormState();
+                }
+            });
+
+            // Update buttons on editor input and selection change
+            editor.addEventListener('keyup', updateButtonStates);
+            editor.addEventListener('mouseup', updateButtonStates);
+            window.addEventListener('selectionchange', () => {
+                if (document.activeElement === editor) {
+                    updateButtonStates();
+                }
+            });
+
+            function updateFormState(showErrors = false) {
+                const nameText = nameInput.value.trim();
+                const subjectText = subjectInput.value.trim();
+                const bodyText = editor.innerHTML.trim(); // Use innerHTML for formatted content
+
+                // Word and character count (use innerText for plain text counting)
+                const plainText = editor.innerText.trim();
+                characterCount = plainText.length;
+                wordCount = plainText ? plainText.split(/\s+/).filter(word => word.length > 0).length : 0;
+
+                // Swear word detection (on plain text)
+                const hasSwearWordInName = swearWords.some(word => nameText.toLowerCase().includes(word));
+                const hasSwearWordInSubject = swearWords.some(word => subjectText.toLowerCase().includes(word));
+                const hasSwearWordInBody = swearWords.some(word => plainText.toLowerCase().includes(word));
+                const hasSwearWord = hasSwearWordInName || hasSwearWordInSubject || hasSwearWordInBody;
+
+                // Update counter display
+                counterDisplay.textContent = `Words: ${wordCount} | Characters: ${characterCount}`;
+
+                // Update error states for inputs and editor
+                nameInput.classList.toggle('input-error', hasSwearWordInName);
+                subjectInput.classList.toggle('input-error', hasSwearWordInSubject);
+                editor.classList.toggle('error', hasSwearWord);
+
+                // Validation checks
+                const errors = [];
+                if (hasSwearWord) errors.push('Swear words detected');
+                if (nameText.length === 0) errors.push('Name is required');
+                if (subjectText.length === 0) errors.push('Subject is required');
+                if (characterCount < 100) errors.push(`Too few characters (${characterCount}/100 minimum)`);
+                if (characterCount > 50000) errors.push(`Too many characters (${characterCount}/50000 maximum)`);
+                if (wordCount < 40) errors.push(`Too few words (${wordCount}/40 minimum)`);
+
+                // Update submit button state
+                const isValid = errors.length === 0;
+                submitButton.disabled = !isValid;
+                submitButton.classList.toggle('submit-button', !isValid);
+
+                // Update error messages
+                errorMessages.innerHTML = showErrors && errors.length > 0 
+                    ? errors.map(error => `<div>${error}</div>`).join('')
+                    : '';
+
+                // Update button states
+                updateButtonStates();
+            }
+
+            // Event listeners
+            editor.addEventListener('input', () => updateFormState());
+            nameInput.addEventListener('input', () => updateFormState());
+            subjectInput.addEventListener('input', () => updateFormState());
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                updateFormState(true); // Show errors on submit attempt
+                if (!submitButton.disabled) {
+                    // Save article to localStorage (store innerHTML for formatting preservation)
+                    const articles = JSON.parse(localStorage.getItem('articles')) || [];
+                    const timestamp = new Date().toLocaleString('en-US', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric', 
+                        hour: '2-digit', 
+                        minute: '2-digit', 
+                        second: '2-digit' 
+                    });
+                    articles.push({
+                        name: nameInput.value.trim(),
+                        subject: subjectInput.value.trim(),
+                        body: editor.innerHTML, // Store formatted HTML
+                        timestamp: timestamp,
+                        upvotes: 0,
+                        downvotes: 0
+                    });
+                    localStorage.setItem('articles', JSON.stringify(articles));
+                    // Redirect to main page
+                    window.location.href = 'index.html';
+                }
+            });
+
+            // Initialize form state
+            updateFormState();
+        });
+    </script>
+</body>
+</html>
