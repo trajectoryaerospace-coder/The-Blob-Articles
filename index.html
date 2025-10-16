@@ -3,492 +3,202 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Blob Articles</title>
+    <title>PDF Editor</title>
+    <script src="https://unpkg.com/pdf-lib@1.17.0/dist/pdf-lib.min.js"></script>
+    <script src="https://unpkg.com/@pdf-lib/fontkit@0.0.4/dist/fontkit.umd.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #b9cfe5;
-            color: #1f2937;
-        }
-        .hero-bg {
-            background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://source.unsplash.com/random/1920x1080/?cosmos');
-            background-size: cover;
-            background-position: center;
-        }
-        .fade-in {
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-        }
-        .fade-in.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        header {
-            background: rgba(191, 215, 213, 0.516);
-            backdrop-filter: blur(3px);
-            -webkit-backdrop-filter: blur(12px);
-            height: 64px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-        nav ul li a {
-            font-weight: 500;
-            transition: color 0.2s ease;
-        }
-        nav ul li a:hover {
-            color: #6366f1;
-        }
-        .article-card {
-            background-color: #ffffff;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 24px;
-            cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            position: relative;
-        }
-        .article-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-        .article-subject {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #1e293b;
-        }
-        .article-meta {
-            font-size: 0.875rem;
-            color: #64748b;
-            margin-bottom: 16px;
-        }
-        .article-body-preview {
-            position: relative;
-            max-height: 120px;
-            overflow: hidden;
-            font-size: 1rem;
-            line-height: 1.7;
-            color: #334155;
-            margin-bottom: 16px;
-            transition: opacity 0.3s ease-out;
-        }
-        .article-body-preview::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 30px;
-            background: linear-gradient(transparent, #ffffff);
-            pointer-events: none;
-        }
-        .article-body-full {
-            display: none;
-            font-size: 1rem;
-            line-height: 1.7;
-            color: #334155;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease-out, opacity 0.4s ease-out;
-        }
-        .article-body-full.expanded {
-            display: block;
-            max-height: 20000px;
-            opacity: 1;
-        }
-        .article-body-full:not(.expanded) {
-            opacity: 0;
-        }
-        .vote-section {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-top: 16px;
-            font-size: 0.875rem;
-            color: #64748b;
-        }
-        .vote-buttons button {
-            background: none;
-            border: 1px solid #e2e8f0;
-            padding: 6px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-weight: 500;
-        }
-        .vote-buttons button:hover {
-            border-color: #6366f1;
-        }
-        .vote-buttons button.like {
-            color: #3b82f6; /* Blue for like */
-            border-color: #3b82f6;
-        }
-        .vote-buttons button.dislike {
-            color: #ef4444; /* Red for dislike */
-            border-color: #ef4444;
-        }
-        .vote-buttons button.active {
-            background-color: currentColor;
-            color: white;
-        }
-        .vote-buttons button.active:hover {
-            opacity: 0.9;
-        }
-        .no-articles {
-            text-align: center;
-            padding: 48px;
-            color: #94a3b8;
-            font-size: 1.125rem;
-        }
-        .no-articles a {
-            color: #6366f1;
-            text-decoration: underline;
-        }
-        footer {
-            background-color: #1e293b;
-            color: #cbd5e1;
-            font-size: 0.875rem;
-        }
-        .vote-count {
-            font-weight: 600;
-        }
-        .delete-btn {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #94a3b8;
-            font-size: 1.2rem;
-            opacity: 0;
-            transition: opacity 0.2s ease, color 0.2s ease;
-        }
-        .article-card:hover .delete-btn {
-            opacity: 1;
-        }
-        .delete-btn:hover {
-            color: #ef4444;
-        }
-        /* Modal styles */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            align-items: center;
-            justify-content: center;
-            z-index: 50;
-        }
-        .modal.visible {
-            display: flex;
-        }
-        .modal-content {
-            background-color: #ffffff;
-            padding: 24px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        }
-        .modal-content h3 {
-            margin-bottom: 16px;
-            font-size: 1.25rem;
-            font-weight: 600;
-        }
-        .modal-content input {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            margin-bottom: 16px;
-        }
-        .modal-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 8px;
-        }
-        .modal-buttons button {
-            padding: 6px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        .modal-buttons .cancel {
-            background: none;
-            border: 1px solid #d1d5db;
-            color: #4b5563;
-        }
-        .modal-buttons .delete {
-            background-color: #ef4444;
-            border: none;
-            color: white;
-        }
-        .create-article-btn {
-            position: fixed;
-            bottom: 32px;
-            right: 12px;
-            background-color: #6366f1;
-            color: white;
-            width:  120px;
-            height: 60px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-            cursor: pointer;
-            transition: transform 0.2s ease, background-color 0.2s ease;
-            z-index: 40;
-        }
-        .create-article-btn:hover {
-            background-color: #4f46e5;
-            transform: scale(1.1);
-        }
-        
-    </style>
 </head>
-<body>
-    <!-- Header -->
-    <header class="shadow sticky top-0 z-50">
-        <nav class="container mx-auto px-4 py-4 flex items-center justify-center">
-            <ul class="flex space-x-8">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="#">About'nt</a></li>
-                <li><a href="#">Contact'nt</a></li>
-                <li><a href="Create.html">Write</a></li>
-            </ul>
-        </nav>
-    </header>
-
-    <!-- Hero Section -->
-    <section class="hero-bg h-80 flex items-center justify-center text-white">
-        <div class="text-center px-4">
-            <h1 class="text-4xl md:text-5xl font-bold mb-3 fade-in">The Blob Articles</h1>
-            <p class="text-lg md:text-xl fade-in">Minimalistic Musings on the Cosmos</p>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <h1 class="text-2xl font-bold mb-4">PDF Editor</h1>
+        <div class="mb-4">
+            <input type="file" id="pdfInput" accept="application/pdf" class="mb-2">
+            <button id="loadPdf" class="bg-blue-500 text-white px-4 py-2 rounded">Load PDF</button>
         </div>
-    </section>
-
-    <!-- Articles List -->
-    <main class="container mx-auto px-4 py-12 max-w-4xl">
-        <section class="fade-in">
-            <h2 class="text-3xl font-semibold mb-8 text-center text-gray-800">Latest Blobs</h2>
-            <div id="articles-container">
-                <!-- Articles injected via JS -->
+        <div class="flex">
+            <div class="w-1/4 p-4 bg-white rounded shadow">
+                <h2 class="text-lg font-semibold mb-2">Tools</h2>
+                <button id="addText" class="bg-green-500 text-white px-4 py-2 rounded mb-2 w-full">Add Text</button>
+                <button id="addImage" class="bg-green-500 text-white px-4 py-2 rounded mb-2 w-full">Add Image</button>
+                <button id="drawRect" class="bg-green-500 text-white px-4 py-2 rounded mb-2 w-full">Draw Rectangle</button>
+                <button id="addPage" class="bg-purple-500 text-white px-4 py-2 rounded mb-2 w-full">Add Page</button>
+                <button id="deletePage" class="bg-red-500 text-white px-4 py-2 rounded mb-2 w-full">Delete Current Page</button>
+                <button id="savePdf" class="bg-blue-500 text-white px-4 py-2 rounded w-full">Save PDF</button>
+                <div class="mt-4">
+                    <label class="block">Text Content:</label>
+                    <input type="text" id="textContent" class="border p-2 w-full" placeholder="Enter text">
+                    <label class="block mt-2">Font Size:</label>
+                    <input type="number" id="fontSize" class="border p-2 w-full" value="12">
+                    <label class="block mt-2">Page Number:</label>
+                    <input type="number" id="pageNumber" class="border p-2 w-full" value="1" min="1">
+                </div>
+                <div id="imageInput" class="hidden mt-4">
+                    <label class="block">Upload Image:</label>
+                    <input type="file" id="imageFile" accept="image/*" class="border p-2 w-full">
+                </div>
             </div>
-        </section>
-    </main>
-
-    <!-- Create Article FAB -->
-    <a href="Create.html" class="create-article-btn" title="Write a new article">Add Article</a>
-
-    <!-- Delete Modal -->
-    <div id="delete-modal" class="modal">
-        <div class="modal-content">
-            <h3>Delete Article</h3>
-            <p>Enter the admin password to delete:</p>
-            <input type="password" id="delete-password" placeholder="Password">
-            <div class="modal-buttons">
-                <button class="cancel">Cancel</button>
-                <button class="delete">Delete</button>
+            <div class="w-3/4 p-4">
+                <canvas id="pdfCanvas" class="border bg-white"></canvas>
+                <div class="mt-4">
+                    <button id="prevPage" class="bg-gray-500 text-white px-4 py-2 rounded">Previous Page</button>
+                    <span id="pageInfo" class="mx-4">Page 1 of 1</span>
+                    <button id="nextPage" class="bg-gray-500 text-white px-4 py-2 rounded">Next Page</button>
+                </div>
             </div>
         </div>
     </div>
-
-    <!-- Footer -->
-    <footer class="py-8 text-center">
-        <div class="container mx-auto px-4">
-            <p>© 2025 The Blob Articles. All rights reserved.</p>
-        </div>
-    </footer>
-
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Fade-in animation
-            const elements = document.querySelectorAll('.fade-in');
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                    }
-                });
-            }, { threshold: 0.1 });
-            elements.forEach(el => observer.observe(el));
+        let pdfDoc = null;
+        let currentPage = 1;
+        let totalPages = 1;
+        const canvas = document.getElementById('pdfCanvas');
+        const ctx = canvas.getContext('2d');
 
-            const container = document.getElementById('articles-container');
-            let articles = JSON.parse(localStorage.getItem('articles')) || [];
-            const userId = 'user_' + Math.random().toString(36).substr(2, 9);
-            let userVotes = JSON.parse(localStorage.getItem('userVotes')) || {};
-            const adminPassword = 'admin123'; // Hardcoded password; change or secure as needed
-            let deleteIndex = null;
+        async function loadPDF(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+            totalPages = pdfDoc.getPageCount();
+            currentPage = 1;
+            updatePageInfo();
+            renderPage(currentPage);
+        }
 
-            const modal = document.getElementById('delete-modal');
-            const passwordInput = document.getElementById('delete-password');
-            const cancelBtn = modal.querySelector('.cancel');
-            const confirmDeleteBtn = modal.querySelector('.delete');
+        async function renderPage(pageNum) {
+            const page = pdfDoc.getPage(pageNum - 1);
+            const { width, height } = page.getSize();
+            canvas.width = width;
+            canvas.height = height;
 
-            // Save user votes
-            function saveUserVotes() {
-                localStorage.setItem('userVotes', JSON.stringify(userVotes));
+            const pdfBytes = await pdfDoc.save();
+            const pdfDataUri = await new Promise(resolve => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(new Blob([pdfBytes], { type: 'application/pdf' }));
+            });
+
+            const img = new Image();
+            img.src = pdfDataUri;
+            img.onload = () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            };
+        }
+
+        async function addTextToPDF() {
+            const text = document.getElementById('textContent').value;
+            const fontSize = parseInt(document.getElementById('fontSize').value);
+            const pageNum = parseInt(document.getElementById('pageNumber').value);
+            if (!text || pageNum < 1 || pageNum > totalPages) return;
+
+            const page = pdfDoc.getPage(pageNum - 1);
+            const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+            page.drawText(text, {
+                x: 50,
+                y: page.getHeight() - 50,
+                size: fontSize,
+                font: font,
+                color: PDFLib.rgb(0, 0, 0),
+            });
+            renderPage(currentPage);
+        }
+
+        async function addImageToPDF(file) {
+            const pageNum = parseInt(document.getElementById('pageNumber').value);
+            if (pageNum < 1 || pageNum > totalPages) return;
+
+            const arrayBuffer = await file.arrayBuffer();
+            const imgType = file.type === 'image/png' ? 'png' : 'jpeg';
+            const img = imgType === 'png' ? await pdfDoc.embedPng(arrayBuffer) : await pdfDoc.embedJpg(arrayBuffer);
+            const page = pdfDoc.getPage(pageNum - 1);
+            const { width, height } = img.scale(0.5);
+            page.drawImage(img, {
+                x: 50,
+                y: page.getHeight() - height - 50,
+                width: width,
+                height: height,
+            });
+            renderPage(currentPage);
+        }
+
+        function drawRectangle() {
+            const pageNum = parseInt(document.getElementById('pageNumber').value);
+            if (pageNum < 1 || pageNum > totalPages) return;
+
+            const page = pdfDoc.getPage(pageNum - 1);
+            page.drawRectangle({
+                x: 100,
+                y: page.getHeight() - 200,
+                width: 100,
+                height: 50,
+                borderWidth: 2,
+                borderColor: PDFLib.rgb(1, 0, 0),
+                color: PDFLib.rgb(0, 1, 0),
+                opacity: 0.5,
+            });
+            renderPage(currentPage);
+        }
+
+        async function addNewPage() {
+            pdfDoc.addPage();
+            totalPages = pdfDoc.getPageCount();
+            currentPage = totalPages;
+            updatePageInfo();
+            renderPage(currentPage);
+        }
+
+        async function deleteCurrentPage() {
+            if (totalPages <= 1) return;
+            pdfDoc.removePage(currentPage - 1);
+            totalPages = pdfDoc.getPageCount();
+            if (currentPage > totalPages) currentPage = totalPages;
+            updatePageInfo();
+            renderPage(currentPage);
+        }
+
+        async function savePDF() {
+            const pdfBytes = await pdfDoc.save();
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'edited_pdf.pdf';
+            link.click();
+        }
+
+        function updatePageInfo() {
+            document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+            document.getElementById('pageNumber').max = totalPages;
+        }
+
+        document.getElementById('loadPdf').addEventListener('click', () => {
+            const file = document.getElementById('pdfInput').files[0];
+            if (file) loadPDF(file);
+        });
+
+        document.getElementById('addText').addEventListener('click', addTextToPDF);
+        document.getElementById('addImage').addEventListener('click', () => {
+            document.getElementById('imageInput').classList.toggle('hidden');
+        });
+        document.getElementById('imageFile').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) addImageToPDF(file);
+        });
+        document.getElementById('drawRect').addEventListener('click', drawRectangle);
+        document.getElementById('addPage').addEventListener('click', addNewPage);
+        document.getElementById('deletePage').addEventListener('click', deleteCurrentPage);
+        document.getElementById('savePdf').addEventListener('click', savePDF);
+        document.getElementById('prevPage').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                updatePageInfo();
+                renderPage(currentPage);
             }
-
-            // Render articles
-            function renderArticles() {
-                container.innerHTML = '';
-                if (articles.length === 0) {
-                    container.innerHTML = '<p class="no-articles">No articles yet. Be the first to <a href="Create.html">write one</a>!</p>';
-                    return;
-                }
-
-                // Sort by net votes (likes - dislikes), then timestamp
-                articles.sort((a, b) => {
-                    const netA = a.likes - a.dislikes;
-                    const netB = b.likes - b.dislikes;
-                    return netB - netA || new Date(b.timestamp) - new Date(a.timestamp);
-                });
-
-                articles.forEach((article, index) => {
-                    const card = document.createElement('div');
-                    card.className = 'article-card';
-                    card.dataset.index = index;
-                    const voteKey = `${userId}_${index}`;
-                    const userVote = userVotes[voteKey] || 0; // -1 dislike, 0 none, 1 like
-
-                    const likeActive = userVote === 1 ? 'active' : '';
-                    const dislikeActive = userVote === -1 ? 'active' : '';
-
-                    card.innerHTML = `
-                        <h3 class="article-subject">${article.subject}</h3>
-                        <p class="article-meta">By ${article.name} • ${article.timestamp}</p>
-                        <div class="article-body-preview">${article.body}</div>
-                        <div class="article-body-full" id="full-${index}">${article.body}</div>
-                        <button class="delete-btn" data-action="delete" data-index="${index}" title="Delete article">Delete</button>
-                        <div class="vote-section">
-                            <span class="vote-count">Like <span class="like-count">${article.likes}</span></span>
-                            <span class="vote-count">Dislike <span class="dislike-count">${article.dislikes}</span></span>
-                            <div class="vote-buttons">
-                                <button class="like ${likeActive}" data-action="like" data-index="${index}">Like</button>
-                                <button class="dislike ${dislikeActive}" data-action="dislike" data-index="${index}">Dislike</button>
-                            </div>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                });
+        });
+        document.getElementById('nextPage').addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                updatePageInfo();
+                renderPage(currentPage);
             }
-
-            // Initial render
-            renderArticles();
-
-            // Sort every 30 minutes
-            setInterval(() => {
-                renderArticles();
-                localStorage.setItem('articles', JSON.stringify(articles));
-            }, 1800000);
-
-            // Migrate old data if needed (upvotes/downvotes -> likes/dislikes)
-            articles = articles.map(article => {
-                if (article.upvotes !== undefined) {
-                    article.likes = article.upvotes || 0;
-                    article.dislikes = article.downvotes || 0;
-                    delete article.upvotes;
-                    delete article.downvotes;
-                }
-                return article;
-            });
-            localStorage.setItem('articles', JSON.stringify(articles));
-
-            // Event delegation
-            container.addEventListener('click', (e) => {
-                const card = e.target.closest('.article-card');
-                if (!card) return;
-                const index = card.dataset.index;
-
-                // Voting
-                const voteBtn = e.target.closest('button[data-action="like"], button[data-action="dislike"]');
-                if (voteBtn) {
-                    e.stopPropagation();
-                    const action = voteBtn.dataset.action;
-                    const voteKey = `${userId}_${index}`;
-                    let currentVote = userVotes[voteKey] || 0;
-                    let newVote = 0;
-
-                    if (action === 'like') {
-                        if (currentVote === 1) {
-                            newVote = 0;
-                            articles[index].likes = Math.max(0, articles[index].likes - 1);
-                        } else {
-                            newVote = 1;
-                            if (currentVote === -1) articles[index].dislikes = Math.max(0, articles[index].dislikes - 1);
-                            articles[index].likes++;
-                        }
-                    } else if (action === 'dislike') {
-                        if (currentVote === -1) {
-                            newVote = 0;
-                            articles[index].dislikes = Math.max(0, articles[index].dislikes - 1);
-                        } else {
-                            newVote = -1;
-                            if (currentVote === 1) articles[index].likes = Math.max(0, articles[index].likes - 1);
-                            articles[index].dislikes++;
-                        }
-                    }
-
-                    userVotes[voteKey] = newVote;
-                    saveUserVotes();
-                    localStorage.setItem('articles', JSON.stringify(articles));
-                    renderArticles();
-                    return;
-                }
-
-                // Delete button
-                const deleteBtn = e.target.closest('button[data-action="delete"]');
-                if (deleteBtn) {
-                    e.stopPropagation();
-                    deleteIndex = index;
-                    modal.classList.add('visible');
-                    passwordInput.value = '';
-                    return;
-                }
-
-                // Toggle expand
-                const full = card.querySelector('.article-body-full');
-                const preview = card.querySelector('.article-body-preview');
-                if (full.classList.contains('expanded')) {
-                    full.classList.remove('expanded');
-                    preview.style.opacity = '1';
-                } else {
-                    full.classList.add('expanded');
-                    preview.style.opacity = '0';
-                }
-            });
-
-            // Modal events
-            cancelBtn.addEventListener('click', () => {
-                modal.classList.remove('visible');
-            });
-
-            confirmDeleteBtn.addEventListener('click', () => {
-                if (passwordInput.value === adminPassword) {
-                    articles.splice(deleteIndex, 1);
-                    localStorage.setItem('articles', JSON.stringify(articles));
-                    renderArticles();
-                } else {
-                    alert('Incorrect password!');
-                }
-                modal.classList.remove('visible');
-            });
-
-            // Close modal on outside click
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.classList.remove('visible');
-                }
-            });
         });
     </script>
 </body>
